@@ -132,40 +132,40 @@ export default function PerfilPage() {
 
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
                 <Chart className="lg:row-span-2" />
+            </div>
 
-                <div className="space-y-6">
-                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
-                        Categorias
-                    </h2>
+            <div className="space-y-6">
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                    Categorias
+                </h2>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {categories.map((category, index) => (
-                            <CategoryCard
-                                key={index}
-                                title={category}
-                                onClick={() => handleCategoryClick(category)}
-                            />
-                        ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {categories.map((category, index) => (
+                        <CategoryCard
+                            key={index}
+                            title={category}
+                            onClick={() => handleCategoryClick(category)}
+                        />
+                    ))}
 
-                        <CategoryCard
-                            isAddCard={true}
-                            onClick={handleCreateCategory}
-                        />
-                        <CategoryCard
-                            isAddCard={true}
-                            onClick={handleCreateCategory}
-                        />
-                        <CategoryCard
-                            isAddCard={true}
-                            onClick={handleCreateCategory}
-                        />
-                        <CategoryCard
-                            isAddCard={true}
-                            onClick={handleCreateCategory}
-                        />
-                    </div>
+                    <CategoryCard
+                        isAddCard={true}
+                        onClick={handleCreateCategory}
+                    />
+                    <CategoryCard
+                        isAddCard={true}
+                        onClick={handleCreateCategory}
+                    />
+                    <CategoryCard
+                        isAddCard={true}
+                        onClick={handleCreateCategory}
+                    />
+                    <CategoryCard
+                        isAddCard={true}
+                        onClick={handleCreateCategory}
+                    />
                 </div>
             </div>
         </main>
