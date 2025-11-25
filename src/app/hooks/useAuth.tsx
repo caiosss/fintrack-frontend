@@ -40,7 +40,6 @@ export function useAuth() {
       
       const currentTime = Date.now() / 1000;
       const isExpired = decoded.exp < currentTime;
-      console.log("Token expirado?", isExpired, "Exp:", decoded.exp, "Current:", currentTime);
       return isExpired;
     } catch {
       return true;
