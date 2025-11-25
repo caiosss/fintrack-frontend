@@ -1,15 +1,27 @@
 "use client";
 
+import type { MouseEvent } from "react";
 import { Card } from "@/components/ui/card";
 import { Plus } from "lucide-react";
+import { NewTransactionInput, Transaction, TransactionsTable, transactionColumns } from "./TransactionsTable";
 
 interface CategoryCardProps {
   title?: string;
   isAddCard?: boolean;
   onClick?: () => void;
+  categoryId?: string | number;
+  transactions?: Transaction[];
+  onAddTransaction?: (categoryId: string | number, payload: NewTransactionInput) => Promise<void> | void;
 }
 
-export function CategoryCard({ title, isAddCard = false, onClick }: CategoryCardProps) {
+export function CategoryCard({ 
+  title, 
+  isAddCard = false, 
+  onClick,
+  categoryId,
+  transactions = [],
+  onAddTransaction,
+}: CategoryCardProps) {
   if (isAddCard) {
     return (
       <Card 
@@ -65,43 +77,73 @@ export function CategoryCard({ title, isAddCard = false, onClick }: CategoryCard
     );
   }
 
+  const handleCardClick = (event: MouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.closest("form")) return;
+    onClick?.();
+  };
+
+  const handleAddTransaction = async (payload: NewTransactionInput) => {
+    if (!categoryId || !onAddTransaction) return;
+    await onAddTransaction(categoryId, payload);
+  };
+
   return (
     <Card 
       className="
-        min-h-[120px] 
+        min-h-[260px]
         border 
-        border-gray-200 
-        dark:border-gray-700 
-        bg-white 
-        dark:bg-gray-800 
-        hover:shadow-lg 
-        hover:shadow-blue-400/25 
-        dark:hover:shadow-blue-400/25 
+        border-slate-200/80 
+        dark:border-slate-800 
+        bg-gradient-to-b 
+        from-white 
+        via-slate-50 
+        to-slate-100 
+        dark:from-slate-900 
+        dark:via-slate-950 
+        dark:to-slate-950 
+        shadow-sm 
+        hover:shadow-md 
         transition-all 
-        duration-300 
+        duration-200 
         cursor-pointer 
         group 
         flex 
-        items-center 
-        justify-center
+        items-stretch 
       "
-      onClick={onClick}
+      onClick={handleCardClick}
     >
-      <div className="text-center p-4">
-        <h3 
-          className="
-            text-lg 
-            font-semibold 
-            text-gray-800 
-            dark:text-gray-200 
-            group-hover:text-blue-600 
-            dark:group-hover:text-blue-400 
-            transition-colors 
-            duration-300
-          "
-        >
-          {title}
-        </h3>
+      <div className="p-5 space-y-4 w-full">
+        <div className="flex items-start justify-between gap-3">
+          <div className="space-y-1">
+            <p className="text-xs uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Categoria</p>
+            <h3 
+              className="
+                text-xl 
+                font-semibold 
+                text-slate-900 
+                dark:text-slate-100 
+                group-hover:text-blue-600 
+                dark:group-hover:text-blue-400 
+                transition-colors 
+                duration-200
+              "
+            >
+              {title}
+            </h3>
+          </div>
+          <span className="rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 px-3 py-1">
+            {transactions.length} transações
+          </span>
+        </div>
+
+        <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
+        <TransactionsTable
+          transactions={transactions}
+          columns={transactionColumns}
+          onAddTransaction={handleAddTransaction}
+        />
+        </div>
       </div>
     </Card>
   );
