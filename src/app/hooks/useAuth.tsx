@@ -1,170 +1,75 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { jwtDecode } from "jwt-decode";
+import { useCallback, useEffect, useState } from "react";
+import api from "@/lib/api";
 
 export type AuthUser = {
   name?: string;
   email?: string;
+  sub?: string | number;
+  id?: string | number;
   [key: string]: unknown;
 } | null;
 
-export type JWTPayload = {
-  sub?: string;
-  name?: string;
-  email?: string;
-  exp?: number;
-  iat?: number;
+type AuthPayload = {
+  user?: Record<string, unknown>;
   [key: string]: unknown;
+};
+
+const normalizeUser = (payload: unknown): AuthUser => {
+  if (!payload || typeof payload !== "object") return null;
+
+  const base =
+    "user" in payload && typeof (payload as AuthPayload).user === "object"
+      ? (payload as AuthPayload).user
+      : payload;
+
+  if (!base || typeof base !== "object") return null;
+
+  const record = base as Record<string, unknown>;
+  const sub = record.sub ?? record.id;
+
+  return {
+    ...record,
+    ...(sub !== undefined ? { sub } : {}),
+  } as AuthUser;
 };
 
 export function useAuth() {
   const [user, setUser] = useState<AuthUser>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
-  const decodeToken = useCallback((token: string): JWTPayload | null => {
+  const loadUser = useCallback(async () => {
+    setLoading(true);
     try {
-      const decoded = jwtDecode<JWTPayload>(token);
-      console.log("Token decodificado:", decoded);
-      return decoded;
+      const response = await api.get("/auth/me");
+      setUser(normalizeUser(response.data));
     } catch (error) {
-      console.error("Erro ao decodificar token JWT:", error);
-      return null;
+      setUser(null);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const isTokenExpired = useCallback((token: string): boolean => {
+  const logout = useCallback(async () => {
     try {
-      const decoded = decodeToken(token);
-      if (!decoded || !decoded.exp) return true;
-      
-      const currentTime = Date.now() / 1000;
-      const isExpired = decoded.exp < currentTime;
-      return isExpired;
-    } catch {
-      return true;
-    }
-  }, [decodeToken]);
-
-  const loadUser = useCallback(() => {
-    if (typeof window === "undefined") {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const token = sessionStorage.getItem("token");
-      
-      if (!token) {
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      if (isTokenExpired(token)) {
-        sessionStorage.removeItem("token");
-        setUser(null);
-        setLoading(false);
-        return;
-      }
-
-      const decodedToken = decodeToken(token);
-      
-      if (decodedToken) {
-        const userData = {
-          name: decodedToken.name,
-          email: decodedToken.email,
-          sub: decodedToken.sub,
-          ...decodedToken
-        };
-        setUser(userData);
-      } else {
-        setUser(null);
-      }
-      
-      setLoading(false);
+      await api.post("/auth/logout");
     } catch (error) {
-      console.error("Erro ao carregar usuário:", error);
+      // Ignore logout errors and clear local state.
+    } finally {
       setUser(null);
-      setLoading(false);
     }
-  }, [decodeToken, isTokenExpired]);
-
-  const logout = useCallback(() => {
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem("token");
-    }
-    setUser(null);
   }, []);
 
   useEffect(() => {
-    const initializeAuth = () => {
-      if (typeof window === "undefined") {
-        console.log("Não está no cliente ainda (window não definida)");
-        setLoading(false);
-        return;
-      }
+    void loadUser();
+  }, [loadUser]);
 
-      try {
-        const token = sessionStorage.getItem("token");
-        
-        if (!token) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        if (isTokenExpired(token)) {
-          setUser(null);
-          setLoading(false);
-          return;
-        }
-
-        const decodedToken = decodeToken(token);
-        
-        if (decodedToken) {
-          const userData = {
-            name: decodedToken.name,
-            email: decodedToken.email,
-            sub: decodedToken.sub,
-            ...decodedToken
-          };
-          setUser(userData);
-        } else {
-          setUser(null);
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        setUser(null);
-        setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
-    if (typeof window !== "undefined") {
-      const handleStorageChange = (e: StorageEvent) => {
-        if (e.key === "token") {
-          initializeAuth();
-        }
-      };
-
-      window.addEventListener("storage", handleStorageChange);
-      
-      return () => {
-        window.removeEventListener("storage", handleStorageChange);
-      };
-    }
-  }, [decodeToken, isTokenExpired]);
-
-  return { 
-    user, 
-    loading, 
+  return {
+    user,
+    loading,
     logout,
     loadUser,
-    decodeToken,
-    isTokenExpired
   };
 }
 

@@ -25,7 +25,6 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import api from "@/lib/api"
-import { setToken } from "@/lib/auth"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -54,7 +53,6 @@ export default function LoginPage() {
             const response = await api.post("/auth/login", dto);
 
             console.log("Login response:", response);
-            setToken(response.data.access_token);
             setTimeout(() => {
                 router.push("/perfil");
             }, 1000);
