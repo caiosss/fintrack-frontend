@@ -28,15 +28,25 @@ export type NewTransactionInput = {
   date: string;
 };
 
+type TransactionFormState = Omit<NewTransactionInput, "amount"> & {
+  amount: string;
+};
+
+const getTodayDateValue = () => {
+  const today = new Date();
+  today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+  return today.toISOString().slice(0, 10);
+};
+
 export const transactionColumns: ColumnDef<Transaction>[] = [
   {
     accessorKey: "description",
-    header: "Descrição",
+    header: "Modelo de pagamento",
     cell: ({ row }) => {
       const { description } = row.original;
       return (
         <div className="text-sm font-medium">
-          {description?.trim() || "Sem descrição"}
+          {description?.trim() || "Sem modelo de pagamento"}
         </div>
       );
     },
@@ -97,10 +107,10 @@ export function TransactionsTable({
   columns = transactionColumns,
   onAddTransaction,
 }: TransactionsTableProps) {
-  const [form, setForm] = useState<NewTransactionInput>({
+  const [form, setForm] = useState<TransactionFormState>({
     description: "",
-    amount: 0,
-    date: new Date().toISOString().slice(0, 10),
+    amount: "",
+    date: getTodayDateValue(),
   });
   const [submitting, setSubmitting] = useState(false);
 
@@ -132,7 +142,7 @@ export function TransactionsTable({
       setForm((prev) => ({
         ...prev,
         description: "",
-        amount: 0,
+        amount: "",
       }));
     } catch (error) {
       console.error("Erro ao criar transação:", error);
@@ -146,7 +156,7 @@ export function TransactionsTable({
       {onAddTransaction && (
         <form className="grid gap-3 md:grid-cols-4" onSubmit={handleSubmit}>
           <Input
-            placeholder="Descrição"
+            placeholder="Débito, Crédito, Pix..."
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
             className="md:col-span-2"
@@ -156,7 +166,7 @@ export function TransactionsTable({
             step="0.01"
             placeholder="Valor"
             value={form.amount}
-            onChange={(e) => setForm((prev) => ({ ...prev, amount: Number(e.target.value) }))}
+            onChange={(e) => setForm((prev) => ({ ...prev, amount: e.target.value }))}
           />
           <Input
             type="date"

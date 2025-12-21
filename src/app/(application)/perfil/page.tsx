@@ -6,16 +6,29 @@ import { Label } from "@/components/ui/label";
 import useAuth from "@/app/hooks/useAuth";
 import { CategoryCard } from "../_components/CategoryCard";
 import { Chart } from "../_components/Chart";
+import { FinancialSummary } from "../_components/FinancialSummary";
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import CreateCategoryModal from "@/components/actions/create-category";
+import EditCategoryModal from "@/components/actions/edit-category";
 import api from "@/lib/api";
 import { NewTransactionInput, Transaction } from "../_components/TransactionsTable";
+import { useQueryClient } from "@tanstack/react-query";
+
+type CategoryType = "INCOME" | "EXPENSE" | "INVESTMENT" | "INVESTIMENT";
+
+type ExpenseComparison = {
+    currentTotal?: number;
+    previousMonthTotal?: number;
+    previousMonthChangePercent?: number | null;
+    previousYearTotal?: number;
+    previousYearChangePercent?: number | null;
+};
 
 type Category = {
     id: string | number;
     name: string;
-    type?: string;
+    type?: CategoryType;
     userId?: string | number;
     transactions?: Transaction[];
 };
@@ -23,7 +36,11 @@ type Category = {
 export default function PerfilPage() {
     const { user, loading } = useAuth();
     const [categories, setCategories] = useState<Category[]>([]);
+    const [expenseComparison, setExpenseComparison] = useState<ExpenseComparison | null>(null);
     const [salary, setSalary] = useState<number>();
+    const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+    const [openEditCategoryModal, setOpenEditCategoryModal] = useState(false);
+    const queryClient = useQueryClient();
 
     const currentDate = new Date();
     const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
@@ -53,20 +70,33 @@ export default function PerfilPage() {
     };
 
     const handleCategoryClick = (category: Category) => {
-        // TODO: Abrir modal para editar categoria
-        console.log("Editar categoria:", category);
+        setEditingCategory(category);
+        setOpenEditCategoryModal(true);
     };
 
-    const handleMonthChange = (month: number) => {
+    const handleEditCategoryClose = () => {
+        setOpenEditCategoryModal(false);
+        setEditingCategory(null);
+    };
+
+    const handleCategoryUpdated = (updatedCategory: Category) => {
+        setCategories((prev) =>
+            prev.map((category) => {
+                if (category.id !== updatedCategory.id) {
+                    return category;
+                }
+                return {
+                    ...category,
+                    ...updatedCategory,
+                    transactions: updatedCategory.transactions ?? category.transactions,
+                };
+            })
+        );
+    };
+
+    const handleFilterDate = (month: number, year: number) => {
         setSelectedMonth(month);
-        console.log("Filtrar por mês:", month);
-        // TODO: Implementar filtro por mês
-    };
-
-    const handleYearChange = (year: number) => {
         setSelectedYear(year);
-        console.log("Filtrar por ano:", year);
-        // TODO: Implementar filtro por ano
     };
 
     const handleAddTransaction = async (categoryId: string | number, payload: NewTransactionInput) => {
@@ -100,17 +130,41 @@ export default function PerfilPage() {
 
         const fetchCategories = async () => {
             try {
-                const response = await api.get(`/category/${user.sub}`);
-                const data = Array.isArray(response.data) ? response.data : response.data?.data ?? [];
-                setCategories(data);
-                console.log("Categorias carregadas:", data);
+                const data = await queryClient.fetchQuery<{
+                    categories: Category[];
+                    expenseComparison?: ExpenseComparison | null;
+                }>({
+                    queryKey: ["categories-filter", user.sub, selectedMonth, selectedYear],
+                    queryFn: async () => {
+                        const response = await api.get(
+                            `/category/filter/${user.sub}/${selectedMonth}/${selectedYear}`
+                        );
+                        const payload = response.data;
+                        if (Array.isArray(payload)) {
+                            return { categories: payload };
+                        }
+                        if (Array.isArray(payload?.categories)) {
+                            return {
+                                categories: payload.categories,
+                                expenseComparison: payload.expenseComparison ?? null,
+                            };
+                        }
+                        if (Array.isArray(payload?.data)) {
+                            return { categories: payload.data };
+                        }
+                        return { categories: [] };
+                    },
+                });
+
+                setCategories(data.categories);
+                setExpenseComparison(data.expenseComparison ?? null);
             } catch (error) {
-                console.error("Erro ao buscar categorias:", error);
+                console.error("Erro ao filtrar categorias:", error);
             }
         };
 
-        fetchCategories();
-    }, [loading, user?.sub]);
+        void fetchCategories();
+    }, [loading, queryClient, user?.sub, selectedMonth, selectedYear]);
 
     return (
         <main className="p-6 space-y-6">
@@ -143,7 +197,7 @@ export default function PerfilPage() {
                                 </Label>
                                 <Select
                                     value={selectedMonth.toString()}
-                                    onValueChange={(value) => handleMonthChange(Number(value))}
+                                    onValueChange={(value) => handleFilterDate(Number(value), selectedYear)}
                                 >
                                     <SelectTrigger id="month-select" className="w-full">
                                         <SelectValue placeholder="Selecione o mês" />
@@ -164,7 +218,7 @@ export default function PerfilPage() {
                                 </Label>
                                 <Select
                                     value={selectedYear.toString()}
-                                    onValueChange={(value) => handleYearChange(Number(value))}
+                                    onValueChange={(value) => handleFilterDate(selectedMonth, Number(value))}
                                 >
                                     <SelectTrigger id="year-select" className="w-full">
                                         <SelectValue placeholder="Selecione o ano" />
@@ -184,8 +238,9 @@ export default function PerfilPage() {
 
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-1 gap-6">
-                <Chart className="lg:row-span-2" />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <FinancialSummary salary={salary} categories={categories} />
+                <Chart className="lg:col-span-1" categories={categories} expenseComparison={expenseComparison} month={months.find(m => m.value === selectedMonth)?.label} year={selectedYear.toString()} />
             </div>
 
             <div className="space-y-6">
@@ -214,6 +269,14 @@ export default function PerfilPage() {
                         open={openCategoryModal}
                         onOpenChange={setOpenCategoryModal}
                         onClose={() => setOpenCategoryModal(false)}
+                    />
+
+                    <EditCategoryModal
+                        open={openEditCategoryModal}
+                        onOpenChange={setOpenEditCategoryModal}
+                        onClose={handleEditCategoryClose}
+                        category={editingCategory}
+                        onUpdated={handleCategoryUpdated}
                     />
                 </div>
             </div>

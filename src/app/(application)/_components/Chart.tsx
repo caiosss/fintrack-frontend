@@ -1,6 +1,7 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
+import { useMemo } from "react";
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { Pie, PieChart } from "recharts";
 
 import {
@@ -14,65 +15,127 @@ import {
 import {
   ChartConfig,
   ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import type { Transaction } from "./TransactionsTable";
+
+type CategoryTotalsInput = {
+  name: string;
+  type?: string;
+  transactions?: Transaction[];
+};
+
+type ExpenseComparison = {
+  currentTotal?: number;
+  previousMonthTotal?: number;
+  previousMonthChangePercent?: number | null;
+  previousYearTotal?: number;
+  previousYearChangePercent?: number | null;
+};
 
 interface ChartProps {
   title?: string;
   className?: string;
+  categories?: CategoryTotalsInput[];
+  month?: string;
+  year?: string;
+  expenseComparison?: ExpenseComparison | null;
 }
 
-const chartData = [
-  { category: "alimentacao", value: 1250, fill: "var(--color-alimentacao)" },
-  { category: "transporte", value: 800, fill: "var(--color-transporte)" },
-  { category: "moradia", value: 2100, fill: "var(--color-moradia)" },
-  { category: "lazer", value: 650, fill: "var(--color-lazer)" },
-  { category: "saude", value: 430, fill: "var(--color-saude)" },
-  { category: "educacao", value: 350, fill: "var(--color-educacao)" },
+const chartPalette = [
+  "var(--chart-1)",
+  "var(--chart-2)",
+  "var(--chart-3)",
+  "var(--chart-4)",
+  "var(--chart-5)",
 ];
 
-const chartConfig = {
+const chartConfigBase = {
   value: {
     label: "Gastos (R$)",
-  },
-  alimentacao: {
-    label: "Alimentação",
-    color: "blue",
-  },
-  transporte: {
-    label: "Transporte",
-    color: "purple",
-  },
-  moradia: {
-    label: "Moradia",
-    color: "green",
-  },
-  lazer: {
-    label: "Lazer",
-    color: "orange",
-  },
-  saude: {
-    label: "Saúde",
-    color: "red",
-  },
-  educacao: {
-    label: "Educação",
-    color: "yellow",
   },
 } satisfies ChartConfig;
 
 export function Chart({ 
-  title = "Gastos por Categoria", 
-  className = "" 
+  title = "Gastos por categoria", 
+  className = "",
+  categories = [],
+  month = "",
+  year = "",
+  expenseComparison = null,
 }: ChartProps) {
+  const chartData = useMemo(() => {
+    return categories
+      .filter((category) => {
+        const normalizedType = category.type?.toUpperCase();
+        return normalizedType === "EXPENSE" || normalizedType === "INVESTMENT" || normalizedType === "INVESTIMENT";
+      })
+      .map((category, index) => {
+        const total = (category.transactions ?? []).reduce((sum, transaction) => {
+          const amount = Number(transaction.amount);
+          return sum + (Number.isFinite(amount) ? amount : 0);
+        }, 0);
+
+        return {
+          category: category.name,
+          value: total,
+          fill: chartPalette[index % chartPalette.length],
+        };
+      })
+      .filter((item) => item.value !== 0);
+  }, [categories]);
+
+  const chartConfig = useMemo(
+    () =>
+      chartData.reduce<ChartConfig>(
+        (acc, item) => {
+          acc[item.category] = { label: item.category };
+          return acc;
+        },
+        { ...chartConfigBase }
+      ),
+    [chartData]
+  );
+
   const totalGastos = chartData.reduce((acc, curr) => acc + curr.value, 0);
+  const comparison = expenseComparison ?? {};
+  const previousMonthTotal = Number(comparison.previousMonthTotal ?? 0);
+  const previousYearTotal = Number(comparison.previousYearTotal ?? 0);
+  const monthChangePercent = comparison.previousMonthChangePercent;
+  const yearChangePercent = comparison.previousYearChangePercent;
+  const hasMonthChange = typeof monthChangePercent === "number";
+  const hasYearChange = typeof yearChangePercent === "number";
+  const MonthTrendIcon = hasMonthChange
+    ? monthChangePercent >= 0
+      ? TrendingUp
+      : TrendingDown
+    : null;
+  const monthChangeSign = hasMonthChange && monthChangePercent >= 0 ? "+" : "";
+  const yearChangeSign = hasYearChange && yearChangePercent >= 0 ? "+" : "";
+
+  const formatCurrency = (value: number) =>
+    value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const formatPercent = (value: number) =>
+    `${value.toLocaleString("pt-BR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}%`;
+
+  const monthComparisonText = hasMonthChange
+    ? `Mês anterior: ${formatCurrency(previousMonthTotal)} (${monthChangeSign}${formatPercent(monthChangePercent)})`
+    : `Mês anterior: ${formatCurrency(previousMonthTotal)}`;
+  const yearComparisonText = hasYearChange
+    ? `Ano anterior: ${formatCurrency(previousYearTotal)} (${yearChangeSign}${formatPercent(yearChangePercent)})`
+    : `Ano anterior: ${formatCurrency(previousYearTotal)}`;
   
   return (
     <Card className={`flex flex-col ${className}`}>
       <CardHeader className="items-center pb-0">
         <CardTitle>{title}</CardTitle>
-        <CardDescription>Distribuição de gastos - Novembro 2025</CardDescription>
+        <CardDescription>Distribuição de gastos - {month} {year}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0 relative">
         <ChartContainer
@@ -91,6 +154,7 @@ export function Chart({
               innerRadius={60}
               strokeWidth={5}
             />
+            <ChartLegend content={<ChartLegendContent nameKey="category" />} />
           </PieChart>
         </ChartContainer>
         
@@ -107,12 +171,15 @@ export function Chart({
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 leading-none font-medium">
-          Gastos aumentaram 8.5% este mês <TrendingUp className="h-4 w-4" />
+          {monthComparisonText}
+          {MonthTrendIcon ? <MonthTrendIcon className="h-4 w-4" /> : null}
         </div>
         <div className="text-muted-foreground leading-none">
-          Mostrando gastos das principais categorias
+          {yearComparisonText}
         </div>
       </CardFooter>
     </Card>
   );
 }
+
+
