@@ -1,6 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import useAuth from "@/app/hooks/useAuth";
@@ -14,6 +15,7 @@ import EditCategoryModal from "@/components/actions/edit-category";
 import api from "@/lib/api";
 import { NewTransactionInput, Transaction } from "../_components/TransactionsTable";
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 type CategoryType = "INCOME" | "EXPENSE" | "INVESTMENT" | "INVESTIMENT";
 
@@ -34,13 +36,15 @@ type Category = {
 };
 
 export default function PerfilPage() {
-    const { user, loading } = useAuth();
+    const { user, loading, logout } = useAuth();
     const [categories, setCategories] = useState<Category[]>([]);
     const [expenseComparison, setExpenseComparison] = useState<ExpenseComparison | null>(null);
     const [salary, setSalary] = useState<number>();
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [openEditCategoryModal, setOpenEditCategoryModal] = useState(false);
     const queryClient = useQueryClient();
+    const router = useRouter();
 
     const currentDate = new Date();
     const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
@@ -72,6 +76,16 @@ export default function PerfilPage() {
     const handleCategoryClick = (category: Category) => {
         setEditingCategory(category);
         setOpenEditCategoryModal(true);
+    };
+
+    const handleLogout = async () => {
+        setIsLoggingOut(true);
+        try {
+            await logout();
+        } finally {
+            setIsLoggingOut(false);
+            router.push("/login");
+        }
     };
 
     const handleEditCategoryClose = () => {
@@ -171,9 +185,14 @@ export default function PerfilPage() {
             <div className="flex gap-6 flex-1">
                 <Card className="flex-1">
                     <CardHeader>
-                        <CardTitle className="text-4xl">
-                            Boas vindas, {user?.name}!
-                        </CardTitle>
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <CardTitle className="text-4xl">
+                                Boas vindas, {user?.name}!
+                            </CardTitle>
+                            <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
+                                {isLoggingOut ? "Saindo..." : "Sair"}
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2">
