@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import api from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link"
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import z from "zod";
 
@@ -19,6 +20,7 @@ const cadastroSchema = z.object({
 type CadastroData = z.infer<typeof cadastroSchema>
 
 export default function RegisterPage() {
+    const [loading, setLoading] = useState<boolean>(false);
 
     const form = useForm<CadastroData>({
         resolver: zodResolver(cadastroSchema),
@@ -26,6 +28,8 @@ export default function RegisterPage() {
     })
 
     function onSubmit(data: CadastroData) {
+        setLoading(true);
+        
         const dto = {
             email: data.email,
             password: data.password,
@@ -33,6 +37,10 @@ export default function RegisterPage() {
         }
 
         api.post("/user", dto)
+
+        setTimeout(() => {
+            window.location.href = "/login"
+        }, 1000);
     }
 
     return (
@@ -103,8 +111,40 @@ export default function RegisterPage() {
                             />
 
                             <div className="pt-2">
-                                <Button type="submit" className="w-full">
-                                    Criar Conta
+                                <Button
+                                    type="submit"
+                                    className="w-full"
+                                    disabled={loading}
+                                    aria-busy={loading}
+                                >
+                                    {loading ? (
+                                        <span className="flex items-center justify-center">
+                                            <svg
+                                                className="animate-spin -ml-1 mr-2 h-4 w-4 text-current"
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                aria-hidden="true"
+                                            >
+                                                <circle
+                                                    className="opacity-25"
+                                                    cx="12"
+                                                    cy="12"
+                                                    r="10"
+                                                    stroke="currentColor"
+                                                    strokeWidth="4"
+                                                ></circle>
+                                                <path
+                                                    className="opacity-75"
+                                                    fill="currentColor"
+                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                                ></path>
+                                            </svg>
+                                            Carregando...
+                                        </span>
+                                    ) : (
+                                        "Cadastrar"
+                                    )}
                                 </Button>
                             </div>
                         </form>
