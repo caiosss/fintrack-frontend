@@ -50,9 +50,8 @@ export default function LoginPage() {
         }
         try {
             setLoading(true);
-            const response = await api.post("/auth/login", dto);
+            await api.post("/auth/login", dto);
 
-            console.log("Login response:", response);
             setTimeout(() => {
                 router.push("/perfil");
             }, 1000);
