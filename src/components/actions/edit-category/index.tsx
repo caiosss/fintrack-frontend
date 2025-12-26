@@ -84,6 +84,9 @@ export default function EditCategoryModal({
       onUpdated?.(updated);
       onOpenChange?.(false);
       onClose?.();
+      setTimeout(() => {
+        window.location.reload();
+      }, 900);
     } catch (error) {
       console.error("Erro ao editar categoria:", error);
     }

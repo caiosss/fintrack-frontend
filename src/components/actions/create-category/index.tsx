@@ -51,22 +51,23 @@ export default function CreateCategoryModal({ open, onOpenChange, onClose }: Cre
 
   const onSubmit = async (data: CreateCategoryData) => {
     try {
-        const dto = {
-            name: data.name,
-            type: data.type
-        }
-        
-        const response = await api.post(`/category/${user?.sub}`, dto);
+      const dto = {
+        name: data.name,
+        type: data.type
+      }
 
-        if (response.status === 201) {
-            setTimeout(() => {
-                form.reset();
-                onClose?.();
-        }, 1000)    
-        }
+      const response = await api.post(`/category/${user?.sub}`, dto);
+
+      if (response.status === 201) {
+        setTimeout(() => {
+          form.reset();
+          onClose?.();
+          window.location.reload();
+        }, 1000)
+      }
 
     } catch (error) {
-        console.error("Erro ao criar categoria:", error);
+      console.error("Erro ao criar categoria:", error);
     }
   }
 

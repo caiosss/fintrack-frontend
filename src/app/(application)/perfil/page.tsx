@@ -108,6 +108,25 @@ export default function PerfilPage() {
         );
     };
 
+    const handleCategoryDeleted = (deletedCategoryId: string | number) => {
+        setCategories((prev) => prev.filter((category) => category.id !== deletedCategoryId));
+    };
+
+    const handleTransactionDeleted = (categoryId: string | number, transactionId: string | number) => {
+        setCategories((prev) =>
+            prev.map((category) =>
+                category.id === categoryId
+                    ? {
+                        ...category,
+                        transactions: (category.transactions ?? []).filter(
+                            (transaction) => transaction.id !== transactionId
+                        ),
+                      }
+                    : category
+            )
+        );
+    };
+
     const handleFilterDate = (month: number, year: number) => {
         setSelectedMonth(month);
         setSelectedYear(year);
@@ -134,6 +153,7 @@ export default function PerfilPage() {
                         : category
                 )
             );
+
         } catch (error) {
             console.error("Erro ao criar transação:", error);
         }
@@ -275,6 +295,8 @@ export default function PerfilPage() {
                             categoryId={category.id}
                             transactions={category.transactions ?? []}
                             onAddTransaction={handleAddTransaction}
+                            onDeleteCategory={handleCategoryDeleted}
+                            onDeleteTransaction={handleTransactionDeleted}
                             onClick={() => handleCategoryClick(category)}
                         />
                     ))}

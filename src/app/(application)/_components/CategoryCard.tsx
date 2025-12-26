@@ -1,9 +1,11 @@
 "use client";
 
-import type { MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { Card } from "@/components/ui/card";
-import { Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plus, Trash2 } from "lucide-react";
 import { NewTransactionInput, Transaction, TransactionsTable, transactionColumns } from "./TransactionsTable";
+import DeleteCategoryModal from "@/components/actions/delete-category";
 
 interface CategoryCardProps {
   title?: string;
@@ -12,19 +14,26 @@ interface CategoryCardProps {
   categoryId?: string | number;
   transactions?: Transaction[];
   onAddTransaction?: (categoryId: string | number, payload: NewTransactionInput) => Promise<void> | void;
+  onDeleteCategory?: (categoryId: string | number) => void;
+  onDeleteTransaction?: (categoryId: string | number, transactionId: string | number) => void;
 }
 
-export function CategoryCard({ 
-  title, 
-  isAddCard = false, 
+export function CategoryCard({
+  title,
+  isAddCard = false,
   onClick,
   categoryId,
   transactions = [],
   onAddTransaction,
+  onDeleteCategory,
+  onDeleteTransaction,
 }: CategoryCardProps) {
+
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+
   if (isAddCard) {
     return (
-      <Card 
+      <Card
         className="
           min-h-[120px] 
           border-2 
@@ -48,7 +57,7 @@ export function CategoryCard({
         onClick={onClick}
       >
         <div className="text-center">
-          <Plus 
+          <Plus
             className="
               w-8 
               h-8 
@@ -58,9 +67,9 @@ export function CategoryCard({
               group-hover:text-blue-400 
               transition-colors 
               duration-300
-            " 
+            "
           />
-          <span 
+          <span
             className="
               text-sm 
               font-medium 
@@ -79,7 +88,7 @@ export function CategoryCard({
 
   const handleCardClick = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
-    if (target.closest("form")) return;
+    if (target.closest("form") || target.closest("[data-card-action='true']")) return;
     onClick?.();
   };
 
@@ -88,8 +97,19 @@ export function CategoryCard({
     await onAddTransaction(categoryId, payload);
   };
 
+  const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setOpenDeleteModal(true);
+  };
+
+  const handleTransactionDeleted = (transactionId: string | number) => {
+    if (!categoryId) return;
+    onDeleteTransaction?.(categoryId, transactionId);
+  };
+
   return (
-    <Card 
+    <Card
       className="
         min-h-[220px]
         sm:min-h-[260px]
@@ -118,21 +138,36 @@ export function CategoryCard({
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Categoria</p>
-            <h3 
-              className="
-                text-lg 
-                sm:text-xl 
-                font-semibold 
-                text-slate-900 
-                dark:text-slate-100 
-                group-hover:text-blue-600 
-                dark:group-hover:text-blue-400 
-                transition-colors 
-                duration-200
-              "
-            >
-              {title}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className="
+                  text-lg 
+                  sm:text-xl 
+                  font-semibold 
+                  text-slate-900 
+                  dark:text-slate-100 
+                  group-hover:text-blue-600 
+                  dark:group-hover:text-blue-400 
+                  transition-colors 
+                  duration-200
+                "
+              >
+                {title}
+              </h3>
+              {categoryId ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon-sm"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={handleDeleteClick}
+                  aria-label="Deletar categoria"
+                  data-card-action="true"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              ) : null}
+            </div>
           </div>
           <span className="rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 px-3 py-1 self-start sm:self-auto">
             {transactions.length} transações
@@ -140,13 +175,22 @@ export function CategoryCard({
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-800 pt-4">
-        <TransactionsTable
-          transactions={transactions}
-          columns={transactionColumns}
-          onAddTransaction={handleAddTransaction}
-        />
+          <TransactionsTable
+            transactions={transactions}
+            columns={transactionColumns}
+            onAddTransaction={handleAddTransaction}
+            onDeleteTransaction={handleTransactionDeleted}
+          />
         </div>
       </div>
+
+      <DeleteCategoryModal
+        open={openDeleteModal}
+        onOpenChange={setOpenDeleteModal}
+        onClose={() => setOpenDeleteModal(false)}
+        categoryId={categoryId}
+        onDeleted={onDeleteCategory}
+      />
     </Card>
   );
 }
