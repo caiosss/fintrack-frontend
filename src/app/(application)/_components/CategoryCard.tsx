@@ -88,7 +88,7 @@ export function CategoryCard({
 
   const handleCardClick = (event: MouseEvent<HTMLDivElement>) => {
     const target = event.target as HTMLElement;
-    if (target.closest("form") || target.closest("[data-card-action='true']")) return;
+    if (target.closest("form") || target.closest("[data-card-action]") || target.closest("button")) return;
     onClick?.();
   };
 

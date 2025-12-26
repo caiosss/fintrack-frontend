@@ -42,7 +42,7 @@ export default function DeleteCategoryModal({
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Deseja deletar esta categoria?</DialogTitle>
-                    <DialogDescription>Tem certeza que deseja deletar esta categoria? Esta aÇõÇœo nÇœo pode ser desfeita.</DialogDescription>
+                    <DialogDescription>Tem certeza que deseja deletar esta categoria? Esta ação não pode ser desfeita.</DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter>
