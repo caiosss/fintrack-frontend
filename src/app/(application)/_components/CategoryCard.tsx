@@ -35,7 +35,9 @@ export function CategoryCard({
     return (
       <Card
         className="
-          min-h-[120px] 
+          min-h-[160px] 
+          sm:min-h-[200px]
+          self-start
           border-2 
           border-dashed 
           border-gray-300 
