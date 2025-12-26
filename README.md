@@ -1,36 +1,81 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fintrack 💰📊
 
-## Getting Started
+<p>
+O Fintrack é um projeto full-stack simples de controle financeiro pessoal, criado inicialmente para ajudar um amigo que precisava de uma planilha no Excel, mas que acabou evoluindo para uma aplicação web com backend e frontend completos.
 
-First, run the development server:
+Além de auxiliar no controle financeiro, o projeto teve como objetivo praticar e aprender novas tecnologias, explorando conceitos reais de aplicações em produção.
+</p>
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades 🚀
+
+- Cadastro e autenticação de usuários
+- Autenticação segura via cookies HTTP-only
+- Criação e gerenciamento de categorias financeiras
+- Registro de transações (receitas e despesas)
+- Visualização de gráficos por categoria, mostrando quanto foi gasto no total
+- Resumo financeiro com base no salário do usuário
+- Comparação automática com:
+    - mês anterior
+    - identificação de economia maior ou menor
+- Dados calculados no backend e consumidos via API
+- Filtro por mês e ano
+
+## O que aprendi com esse projeto? 🤔
+- Estruturação de uma API usando NestJS
+- Integração com banco de dados utilizando Prisma + PostgreSQL
+- Implementação de autenticação por cookies com JWT
+Configuração de Dockerfile e docker-compose
+- Deploy do projeto em produção
+- Uso de Vercel (frontend) e Railway (backend + banco)
+- Configuração de DNS e domínio customizado
+- Entendimento de problemas reais como CORS, cookies e compatibilidade com mobile
+
+## Tecnologias utilizadas 🛠️
+### Backend
+- NestJS
+- PrismaORM
+- PostgreSQL
+- JWT
+- Docker
+
+### Frontend
+- Next.js
+- React
+- Axios
+- Tailwind CSS
+
+### Infra / Deploy
+- Docker
+- Railway (API + banco de dados)
+- Vercel (frontend)
+- Domínio customizado + DNS
+
+## Como funciona a análise financeira 📊
+- O backend calcula os totais de gastos por categoria
+- É gerado um resumo financeiro com base no salário informado
+- A API retorna comparações com o mês anterior:
+    - total gasto
+    - variação percentual
+    - indicação de economia maior ou menor
+- O frontend exibe essas informações em gráficos e cards de resumo
+
+## Rodando o projeto localmente ⚙️
+Primeiro configure o seu .env tanto para o front como para o back
+
+### Backend
+```
+docker-compose up
+npm run start:dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Frontend
+```
+npm install
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Objetivo do projeto 🎯
+O projeto foi desenvolvido como o foco em aprendizado prático, simulações de ambientes real de produção como forma de evoluir tecnicamente. Até o momento não possuo nenhum foco comercial com o projeto.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Autor
+Desenvolvido por Caio
