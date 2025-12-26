@@ -91,7 +91,8 @@ export function CategoryCard({
   return (
     <Card 
       className="
-        min-h-[260px]
+        min-h-[220px]
+        sm:min-h-[260px]
         border 
         border-slate-200/80 
         dark:border-slate-800 
@@ -113,13 +114,14 @@ export function CategoryCard({
       "
       onClick={handleCardClick}
     >
-      <div className="p-5 space-y-4 w-full">
-        <div className="flex items-start justify-between gap-3">
+      <div className="p-4 sm:p-5 space-y-4 w-full">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
             <p className="text-xs uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">Categoria</p>
             <h3 
               className="
-                text-xl 
+                text-lg 
+                sm:text-xl 
                 font-semibold 
                 text-slate-900 
                 dark:text-slate-100 
@@ -132,7 +134,7 @@ export function CategoryCard({
               {title}
             </h3>
           </div>
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 px-3 py-1">
+          <span className="rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-700 dark:text-slate-200 px-3 py-1 self-start sm:self-auto">
             {transactions.length} transações
           </span>
         </div>

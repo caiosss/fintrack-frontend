@@ -126,6 +126,7 @@ export function TransactionsTable({
 
   const formatCurrency = (value: number) =>
     value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  const tableCellClass = "whitespace-normal sm:whitespace-nowrap";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -154,12 +155,12 @@ export function TransactionsTable({
   return (
     <div className="space-y-4">
       {onAddTransaction && (
-        <form className="grid gap-3 md:grid-cols-4" onSubmit={handleSubmit}>
+        <form className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" onSubmit={handleSubmit}>
           <Input
             placeholder="Débito, Crédito, Pix..."
             value={form.description}
             onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
-            className="md:col-span-2"
+            className="sm:col-span-2 lg:col-span-2"
           />
           <Input
             type="number"
@@ -173,25 +174,27 @@ export function TransactionsTable({
             value={form.date}
             onChange={(e) => setForm((prev) => ({ ...prev, date: e.target.value }))}
           />
-          <Button type="submit" disabled={submitting} className="md:col-span-4">
+          <Button type="submit" disabled={submitting} className="sm:col-span-2 lg:col-span-4">
             {submitting ? "Salvando..." : "Adicionar transação"}
           </Button>
         </form>
       )}
 
-      <div className="border rounded-lg overflow-hidden bg-white/60 dark:bg-slate-900/40 shadow-sm">
+      <div className="border border-slate-200/80 dark:border-slate-800/80 rounded-lg overflow-hidden bg-slate-50/80 dark:bg-slate-950/60 shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>
               {columns.map((column) => (
-                <TableHead key={String(column.accessorKey)}>{column.header}</TableHead>
+                <TableHead key={String(column.accessorKey)} className={tableCellClass}>
+                  {column.header}
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center text-sm text-muted-foreground">
+                <TableCell colSpan={columns.length} className={`${tableCellClass} text-center text-sm text-muted-foreground`}>
                   Nenhuma transação cadastrada.
                 </TableCell>
               </TableRow>
@@ -204,7 +207,7 @@ export function TransactionsTable({
                     ];
 
                     return (
-                      <TableCell key={String(column.accessorKey)}>
+                      <TableCell key={String(column.accessorKey)} className={tableCellClass}>
                         {(column.cell
                           ? column.cell({ row: { original: transaction } })
                           : (value ?? "-")) as React.ReactNode}
@@ -217,10 +220,10 @@ export function TransactionsTable({
           </TableBody>
           <TableFooter>
             <TableRow>
-              <TableCell colSpan={columns.length - 1} className="text-right font-semibold text-sm">
+              <TableCell colSpan={columns.length - 1} className={`${tableCellClass} text-right font-semibold text-sm`}>
                 Total
               </TableCell>
-              <TableCell className="font-semibold text-emerald-600">
+              <TableCell className={`${tableCellClass} font-semibold text-emerald-600`}>
                 {formatCurrency(total)}
               </TableCell>
             </TableRow>

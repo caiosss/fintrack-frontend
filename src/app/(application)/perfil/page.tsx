@@ -181,15 +181,15 @@ export default function PerfilPage() {
     }, [loading, queryClient, user?.sub, selectedMonth, selectedYear]);
 
     return (
-        <main className="p-6 space-y-6">
-            <div className="flex gap-6 flex-1">
+        <main className="px-4 py-5 sm:px-6 sm:py-6 space-y-6">
+            <div className="flex flex-col gap-6 lg:flex-row">
                 <Card className="flex-1">
                     <CardHeader>
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                            <CardTitle className="text-4xl">
+                            <CardTitle className="text-2xl sm:text-3xl lg:text-4xl">
                                 Boas vindas, {user?.name}!
                             </CardTitle>
-                            <Button variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
+                            <Button className="w-full sm:w-auto" variant="outline" onClick={handleLogout} disabled={isLoggingOut}>
                                 {isLoggingOut ? "Saindo..." : "Sair"}
                             </Button>
                         </div>
@@ -209,7 +209,7 @@ export default function PerfilPage() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex gap-4">
+                        <div className="flex flex-col gap-4 sm:flex-row">
                             <div className="flex-1">
                                 <Label htmlFor="month-select" className="text-sm font-medium mb-2 block">
                                     Mês
@@ -263,7 +263,7 @@ export default function PerfilPage() {
             </div>
 
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200">
+                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 sm:text-xl">
                     Categorias
                 </h2>
 
