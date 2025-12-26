@@ -42,7 +42,7 @@ export function useAuth() {
   const loadUser = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await api.get("/auth/me");
+      const response = await api.get("/auth/me", { withCredentials: true });
       setUser(normalizeUser(response.data));
     } catch (error) {
       setUser(null);
